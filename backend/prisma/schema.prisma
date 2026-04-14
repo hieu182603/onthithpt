@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// --- Identity ---
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  roleId       String
+  role         Role     @relation(fields: [roleId], references: [id])
+  attempts     Attempt[]
+}
+
+model Role {
+  id    String @id @default(uuid())
+  name  String @unique // STUDENT, TEACHER, ADMIN
+  users User[]
+}
+
+// --- Catalog ---
+model Subject {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  topics Topic[]
+}
+
+model Topic {
+  id        String     @id @default(uuid())
+  name      String
+  subject   Subject    @relation(fields: [subjectId], references: [id])
+  subjectId String
+  questions Question[]
+}
+
+// --- Assessment ---
+model Question {
+  id           String   @id @default(uuid())
+  content      String
+  difficulty   Int      // 1 đến 5
+  explanation  String
+  topic        Topic    @relation(fields: [topicId], references: [id])
+  topicId      String
+  options      Option[]
+  answers      Answer[]
+}
+
+model Option {
+  id         String   @id @default(uuid())
+  content    String
+  isCorrect  Boolean
+  question   Question @relation(fields: [questionId], references: [id])
+  questionId String
+}
+
+// --- Learning & Logging ---
+model Attempt {
+  id          String    @id @default(uuid())
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  startedAt   DateTime  @default(now())
+  completedAt DateTime?
+  score       Float?
+  answers     Answer[]
+}
+
+model Answer {
+  id               String   @id @default(uuid())
+  attemptId        String
+  attempt          Attempt  @relation(fields: [attemptId], references: [id])
+  questionId       String
+  question         Question @relation(fields: [questionId], references: [id])
+  selectedOptionId String
+  isCorrect        Boolean
+}

@@ -1,0 +1,4 @@
+# 📂 Module: Catalog
+      
+## Use Cases
+
